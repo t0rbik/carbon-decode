@@ -1,4 +1,4 @@
-# Carbon Decode
+# Carbon DeFi Decode
 
 A simple library to decode Carbon Protocol's strategies.
 

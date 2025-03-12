@@ -1,6 +1,6 @@
 [package]
-name = "carbon-decode"
-description = "A simple lib to decode Carbon's strategies."
+name = "carbon-defi-decode"
+description = "A simple lib to decode Carbon DeFi strategies."
 version = "0.1.0"
 edition = "2024"
 license = "MIT"

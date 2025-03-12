@@ -980,7 +980,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "carbon-decode"
+name = "carbon-defi-decode"
 version = "0.1.0"
 dependencies = [
  "alloy",
