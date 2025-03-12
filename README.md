@@ -24,7 +24,7 @@ carbon-decode = "0.1.0"
 ## Usage
 
 ```rust
-use carbon-decode::decode::parse_strategy;
+use carbon-defi-decode::decode::parse_strategy;
 
 let parsed_strategy = parse_strategy(strategy);
 ```
