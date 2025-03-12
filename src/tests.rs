@@ -1,4 +1,4 @@
-use alloy::primitives::{Address, U256};
+use alloy_core::primitives::{Address, U256};
 
 use crate::contract::{Order, Strategy};
 

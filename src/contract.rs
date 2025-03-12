@@ -1,4 +1,4 @@
-use alloy::sol;
+use alloy_core::sol;
 
 sol! {
     type Token is address;

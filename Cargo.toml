@@ -10,7 +10,7 @@ repository = "https://github.com/t0rbik/carbon-decode"
 
 
 [dependencies]
-alloy = { version = "0.12.5", features = ["essentials"] }
+alloy-core = { version = "0.8.22", features = ["sol-types", 'serde'] }
 eyre = "0.6.12"
 rust_decimal = { version = "1.36.0", features = ["maths"] }
 serde = "1.0.219"

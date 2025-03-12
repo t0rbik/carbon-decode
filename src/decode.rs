@@ -4,8 +4,8 @@
 //! One can find carbon-sdk's implementation here:
 //! https://github.com/bancorprotocol/carbon-sdk/blob/main/src/utils/encoders.ts#L111
 
-use alloy::primitives::utils::format_units;
-use alloy::primitives::{Address, U256};
+use alloy_core::primitives::utils::format_units;
+use alloy_core::primitives::{Address, U256};
 use eyre::{Result, eyre};
 use rust_decimal::prelude::*;
 use serde::ser::SerializeStruct;
