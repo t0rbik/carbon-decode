@@ -5,8 +5,8 @@ version = "0.1.0"
 edition = "2024"
 license = "MIT"
 readme = "README.md"
-homepage = "fill_in.com"
-repository = "fill_in.com"
+homepage = "https://github.com/t0rbik/carbon-decode"
+repository = "https://github.com/t0rbik/carbon-decode"
 
 
 [dependencies]
