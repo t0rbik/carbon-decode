@@ -4,15 +4,15 @@ A simple library to decode Carbon Protocol's strategies.
 
 ## Overview
 
-Carbon Decode is a Rust library designed to parse and interpret Carbon Protocol's strategy data. It provides tools to decode and analyze Carbon's decentralized finance strategies.
+Carbon DeFi Decode is a Rust library designed to parse and interpret Carbon Protocol's strategy data.
+It uses alloy under the hood.
 
 ## Installation
 
-Add this to your `Cargo.toml`:
+Run this command in your project
 
-```toml
-[dependencies]
-carbon-decode = "0.1.0"
+```bash
+cargo add carbon-defi-decode
 ```
 
 ## Features
