@@ -6,7 +6,7 @@ use crate::decode::{decode_float, is_overlapping_strategy, parse_strategy};
 
 #[test]
 fn decode_float_test() {
-    let float = decode_float(("3562339608471328").parse::<u64>().unwrap());
+    let float = decode_float(("3562339608471328").parse::<u64>().unwrap()).unwrap();
     assert_eq!(float.to_string(), String::from("756284981016395776"))
 }
 
@@ -46,7 +46,7 @@ fn test_parse_strategy_and_get_spread_ppm_mock1() {
     let strategy = parse_strategy(strategy, [18, 6]).unwrap();
 
     assert_eq!(strategy.spread_ppm, "0.60");
-    assert_eq!(is_overlapping_strategy(&strategy), true);
+    assert_eq!(is_overlapping_strategy(&strategy).unwrap(), true);
 }
 
 #[test]
@@ -85,7 +85,7 @@ fn test_parse_strategy_and_get_spread_ppm_mock2() {
     let strategy = parse_strategy(strategy, [18, 6]).unwrap();
 
     assert_eq!(strategy.spread_ppm, "0.30");
-    assert_eq!(is_overlapping_strategy(&strategy), true);
+    assert_eq!(is_overlapping_strategy(&strategy).unwrap(), true);
 }
 
 #[test]
@@ -124,5 +124,5 @@ fn test_parse_strategy_and_get_spread_ppm_mock3() {
     let strategy = parse_strategy(strategy, [18, 18]).unwrap();
 
     assert_eq!(strategy.spread_ppm, "11.11");
-    assert_eq!(is_overlapping_strategy(&strategy), true);
+    assert_eq!(is_overlapping_strategy(&strategy).unwrap(), true);
 }

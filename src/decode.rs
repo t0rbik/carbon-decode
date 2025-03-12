@@ -6,7 +6,7 @@
 
 use alloy::primitives::utils::format_units;
 use alloy::primitives::{Address, U256};
-use eyre::Result;
+use eyre::{Result, eyre};
 use rust_decimal::prelude::*;
 use serde::ser::SerializeStruct;
 use std::ops::{Div, Mul};
@@ -79,7 +79,7 @@ pub fn parse_strategy(
     strategy: Strategy,
     strategy_token_decimals: [u8; 2],
 ) -> Result<ParsedStrategy> {
-    let strategy = decode_strategy(strategy);
+    let strategy = decode_strategy(strategy)?;
     let DecodedStrategy {
         id,
         token0,
@@ -89,12 +89,12 @@ pub fn parse_strategy(
         encoded,
     } = strategy;
     let [decimals0, decimals1] = strategy_token_decimals;
-    let buy_price_low = normalize_rate(order1.lowest_rate, decimals0, decimals1);
-    let buy_price_marginal = normalize_rate(order1.marginal_rate, decimals0, decimals1);
-    let buy_price_high = normalize_rate(order1.highest_rate, decimals0, decimals1);
-    let sell_price_low = normalize_inverted_rate(order0.highest_rate, decimals1, decimals0);
-    let sell_price_marginal = normalize_inverted_rate(order0.marginal_rate, decimals1, decimals0);
-    let sell_price_high = normalize_inverted_rate(order0.lowest_rate, decimals1, decimals0);
+    let buy_price_low = normalize_rate(order1.lowest_rate, decimals0, decimals1)?;
+    let buy_price_marginal = normalize_rate(order1.marginal_rate, decimals0, decimals1)?;
+    let buy_price_high = normalize_rate(order1.highest_rate, decimals0, decimals1)?;
+    let sell_price_low = normalize_inverted_rate(order0.highest_rate, decimals1, decimals0)?;
+    let sell_price_marginal = normalize_inverted_rate(order0.marginal_rate, decimals1, decimals0)?;
+    let sell_price_high = normalize_inverted_rate(order0.lowest_rate, decimals1, decimals0)?;
 
     let liquidity0 = order0.liquidity.parse::<U256>()?;
     let liquidity1 = order1.liquidity.parse::<U256>()?;
@@ -127,31 +127,30 @@ pub fn parse_strategy(
     })
 }
 
-fn decode_strategy(strategy: Strategy) -> DecodedStrategy {
-    let str_encoded = serde_json::to_string(&strategy).unwrap_or(String::from(""));
+fn decode_strategy(strategy: Strategy) -> Result<DecodedStrategy> {
+    let str_encoded = serde_json::to_string(&strategy)
+        .map_err(|e| eyre!("Failed to serialize strategy: {}", e))?;
     let tokens = strategy.tokens;
     let orders = strategy.orders;
 
-    let decoded_orders = orders.map(decode_order);
+    let order0 = decode_order(orders[0].clone())?;
+    let order1 = decode_order(orders[1].clone())?;
 
-    let order0 = decoded_orders[0].clone();
-    let order1 = decoded_orders[1].clone();
-
-    DecodedStrategy {
+    Ok(DecodedStrategy {
         id: strategy.id.to_string(),
         token0: tokens[0],
         token1: tokens[1],
         order0,
         order1,
         encoded: str_encoded,
-    }
+    })
 }
 
-fn decode_order(order: Order) -> DecodedOrder {
+fn decode_order(order: Order) -> Result<DecodedOrder> {
     let y = order.y;
     let z = order.z;
-    let a = decode_float(order.A);
-    let b = decode_float(order.B);
+    let a = decode_float(order.A)?;
+    let b = decode_float(order.B)?;
 
     let liquidity = y.to_string();
     let lowest_rate = decode_rate(b);
@@ -166,22 +165,26 @@ fn decode_order(order: Order) -> DecodedOrder {
         decode_rate(b + res.to::<u128>())
     };
 
-    DecodedOrder {
+    Ok(DecodedOrder {
         liquidity,
         lowest_rate,
         highest_rate,
         marginal_rate,
-    }
+    })
 }
 
 const ONE: u64 = 2_u64.pow(48);
 
-pub fn decode_float(value: u64) -> u128 {
+pub fn decode_float(value: u64) -> Result<u128> {
     let value = Decimal::from(value);
     let one = Decimal::from(ONE);
     let f = value % one;
     let number_of_bits = value / one;
-    f.to_u128().unwrap() << number_of_bits.to_u128().unwrap()
+    let f = f.to_u128().ok_or(eyre!("Failed to convert f to u128"))?;
+    let number_of_bits = number_of_bits
+        .to_u128()
+        .ok_or(eyre!("Failed to convert number_of_bits to u128"))?;
+    Ok(f << number_of_bits)
 }
 
 fn decode_rate(value: u128) -> String {
@@ -189,26 +192,30 @@ fn decode_rate(value: u128) -> String {
     (value / Decimal::from(ONE)).powf(2.0).to_string()
 }
 
-fn normalize_rate(amount: String, amount_token_decimals: u8, other_token_decimals: u8) -> String {
-    let amount = Decimal::from_str(&amount).unwrap();
+fn normalize_rate(
+    amount: String,
+    amount_token_decimals: u8,
+    other_token_decimals: u8,
+) -> Result<String> {
+    let amount = Decimal::from_str(&amount)?;
     let ten_pow = ten_pow(amount_token_decimals, other_token_decimals);
     let amount = amount.mul(ten_pow);
-    amount.to_string()
+    Ok(amount.to_string())
 }
 
 fn normalize_inverted_rate(
     amount: String,
     amount_token_decimals: u8,
     other_token_decimals: u8,
-) -> String {
-    let amount = Decimal::from_str(&amount).unwrap();
+) -> Result<String> {
+    let amount = Decimal::from_str(&amount)?;
     if amount.eq(&Decimal::from(0)) {
-        return String::from("0");
+        return Ok(String::from("0"));
     }
     let amount = Decimal::from(1).div(amount);
     let ten_pow = ten_pow(other_token_decimals, amount_token_decimals);
     let amount = amount.mul(ten_pow);
-    amount.to_string()
+    Ok(amount.to_string())
 }
 
 fn ten_pow(dec0: u8, dec1: u8) -> Decimal {
@@ -216,14 +223,15 @@ fn ten_pow(dec0: u8, dec1: u8) -> Decimal {
     Decimal::from(10).powi(diff.into())
 }
 
-pub fn is_overlapping_strategy(strategy: &ParsedStrategy) -> bool {
-    let buy_max = Decimal::from_str(&strategy.buy_price_high).unwrap();
-    let sell_min = Decimal::from_str(&strategy.sell_price_low).unwrap();
+pub fn is_overlapping_strategy(strategy: &ParsedStrategy) -> Result<bool> {
+    let buy_max = Decimal::from_str(&strategy.buy_price_high)?;
+    let sell_min = Decimal::from_str(&strategy.sell_price_low)?;
+
     if sell_min.eq(&Decimal::from(0)) {
-        return false;
+        return Ok(false);
     }
     if buy_max.eq(&Decimal::from(0)) {
-        return false;
+        return Ok(false);
     }
-    buy_max.ge(&sell_min)
+    Ok(buy_max.ge(&sell_min))
 }
