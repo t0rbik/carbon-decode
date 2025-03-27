@@ -219,7 +219,7 @@ fn normalize_inverted_rate(
 }
 
 fn ten_pow(dec0: u8, dec1: u8) -> Decimal {
-    let diff = dec0 - dec1;
+    let diff = dec0 as i8 - dec1 as i8;
     Decimal::from(10).powi(diff.into())
 }
 

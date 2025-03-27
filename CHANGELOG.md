@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0] - 2025-03-27
+
+### Critical error fix
+
+- Fixes overflow substraction of unsigned integers (token decimals)
+
+### Added
+
 ## [0.2.0] - 2025-03-27
 
 ### Added
