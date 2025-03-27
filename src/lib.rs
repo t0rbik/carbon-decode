@@ -1,4 +1,4 @@
-pub mod contract;
+mod contract;
 
 pub mod decode;
 
